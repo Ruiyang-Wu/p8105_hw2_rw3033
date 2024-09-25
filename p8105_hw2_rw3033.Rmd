@@ -10,17 +10,127 @@ Read the data
 library(tidyverse)
 
 prob1_df = read_csv(file = "~/Desktop/BIST8105/HW/p8105_hw2_rw3033/NYC_Transit_Subway_Entrance_And_Exit_Data.csv", na = c(".", "NA", ""))
+view(prob1_df)
 ```
 
 Clean the data
-```{r}
-prob1_df = janitor::clean_names(prob1_df)
-select(prob1_df, line, station_name, station_latitude, station_longitude, route1:route11, entry, vending, entrance_type, ada)
-```
-
 Convert the entry variable
 ```{r}
-mutate(prob1_df, entry = ifelse(entry == "YES", TRUE, FALSE))
+prob1_df = prob1_df |>
+  janitor::clean_names() |>
+  select(line, station_name, station_latitude, station_longitude, 
+         route1:route11, entry, vending, entrance_type, ada) |>
+  mutate(entry = str_trim(entry), 
+         entry = ifelse(entry == "YES", TRUE, FALSE))
+
+str(prob1_df)
+view(prob1_df)
 ```
+Variables:
+This dataset contains 1,868 rows and 19 columns.
+Line, Station Name, Route1 to Route7, vending, Entrance Type are character variables.
+Station Latitude, Station Longitude, Route8 to Route11 numeric variables.
+Entry and ADA are logical variables.
+
+Data Cleaning Steps:
+The column names were cleaned using janitor::clean_names() to standardize the format, making them all lowercase and replacing spaces with underscores.
+Only the relevant columns were selected for further analysis: line, station_name, station_latitude, station_longitude, route1 through route11, entry, vending, entrance_type, and ada.
+The entry column, initially containing "YES" and "NO", was converted into a logical format (TRUE for "YES" and FALSE for "NO").
+
+Tidiness:
+The dataset is not tidy because it contains NA values, and the subway routes are inconsistently represented—some are stored as character (chr) variables while others are stored as numeric (num). This inconsistency makes it difficult to work with the data in a uniform way, as all routes should ideally be represented in a single, consistent format.
+
+Answer questions:
+```{r}
+library(dplyr)
+
+# 1. How many distinct stations are there?
+distinct_stations_count = prob1_df |>
+  distinct(station_name, line) |>
+  nrow()
+
+distinct_stations_count
+
+# 2. How many stations are ADA compliant?
+ada_compliant_stations_count = prob1_df |>
+  filter(ada == TRUE) |>
+  distinct(station_name, line) |>
+  nrow()
+
+ada_compliant_stations_count
+
+# 3. Proportion of station entrances / exits without vending
+# Total count of stations without vending
+total_count_vending_no = prob1_df |>
+  filter(vending == "NO") |>
+  nrow()
+
+# Total count of station entrances without vending (entry == TRUE)
+count_entry_true_without_vending = prob1_df |>
+  filter(vending == "NO", entry == TRUE) |>
+  nrow()
+
+# Total count of station exits without vending (entry == FALSE)
+count_entry_false_without_vending = prob1_df |>
+  filter(vending == "NO", entry == FALSE) |>
+  nrow()
+
+# Proportion of station entrances without vending (entry == TRUE)
+proportion_entrances_without_vending = count_entry_true_without_vending / total_count_vending_no
+
+# Proportion of station exits without vending (entry == FALSE)
+proportion_exits_without_vending = count_entry_false_without_vending / total_count_vending_no
+
+# Output the results
+proportion_entrances_without_vending
+proportion_exits_without_vending
+
+
+```
+How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St 8th Avenue; 125st Broadway; 125st Lenox)?
+  465
+How many stations are ADA compliant?
+  84
+What proportion of station entrances / exits without vending allow entrance?
+  P(entrances|without vending allow entrance) = 0.3770492
+  P(exits|without vending allow entrance) = 0.6229508
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+# Reformat data so that route number and route name are distinct variables
+prob1_df_long = prob1_df |>
+  mutate(across(route1:route11, as.character)) |>
+  pivot_longer(cols = starts_with("route"), 
+               names_to = "route_number", 
+               values_to = "route_name", 
+               values_drop_na = TRUE)
+
+head(prob1_df_long)
+
+# 1. How many distinct stations serve the A train?
+distinct_stations_A_train = prob1_df_long |>
+  filter(route_name == "A") |>
+  distinct(station_name, line) |>
+  nrow()
+
+distinct_stations_A_train
+
+# 2. How many of the stations that serve the A train are ADA compliant?
+ada_compliant_A_train <- prob1_df_long |>
+  filter(route_name == "A", ada == TRUE) |>
+  distinct(station_name, line) |>
+  nrow()
+
+ada_compliant_A_train
+```
+How many distinct stations serve the A train? 
+  60
+Of the stations that serve the A train, how many are ADA compliant?
+  17
+
+
 # Problem 2
 
