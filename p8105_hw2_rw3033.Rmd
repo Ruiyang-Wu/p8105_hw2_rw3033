@@ -1,0 +1,26 @@
+---
+title: "p8105_hw2_rw3033"
+output: github_document
+---
+
+
+# Problem 1
+Read the data
+```{r}
+library(tidyverse)
+
+prob1_df = read_csv(file = "~/Desktop/BIST8105/HW/p8105_hw2_rw3033/NYC_Transit_Subway_Entrance_And_Exit_Data.csv", na = c(".", "NA", ""))
+```
+
+Clean the data
+```{r}
+prob1_df = janitor::clean_names(prob1_df)
+select(prob1_df, line, station_name, station_latitude, station_longitude, route1:route11, entry, vending, entrance_type, ada)
+```
+
+Convert the entry variable
+```{r}
+mutate(prob1_df, entry = ifelse(entry == "YES", TRUE, FALSE))
+```
+# Problem 2
+
