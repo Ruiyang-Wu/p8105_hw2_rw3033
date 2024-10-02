@@ -84,8 +84,6 @@ proportion_exits_without_vending = count_entry_false_without_vending / total_cou
 # Output the results
 proportion_entrances_without_vending
 proportion_exits_without_vending
-
-
 ```
 How many distinct stations are there? Note that stations are identified both by name and by line (e.g. 125th St 8th Avenue; 125st Broadway; 125st Lenox)?
   465
@@ -133,4 +131,103 @@ Of the stations that serve the A train, how many are ADA compliant?
 
 
 # Problem 2
+```{r}
+# Mr. Trash Wheel
+library(readxl)
+library(dplyr)
+library(skimr)
+library(tidyr)
+
+# Read the Excel file and specify column types
+MrTrashWheel_df = read_excel(
+  path = "~/Desktop/BIST8105/HW/p8105_hw2_rw3033/202409 Trash Wheel Collection Data.xlsx", 
+  sheet = "Mr. Trash Wheel", 
+  na = c("NA", ".", ""))|>
+  select(-...15, -...16) |>
+  # Use reasonable variable names
+  janitor::clean_names() |>
+  # Omit rows that do not include dumpster-specific data
+  drop_na(dumpster)|>
+  # Round the number of sports balls to the nearest integer and convert the result to an integer variable
+  mutate(sports_balls = as.integer(round(sports_balls)))|>
+  mutate(year = as.numeric(year))|>
+  # Add source
+  mutate(source = "Mr. Trash Wheel")
+
+str(MrTrashWheel_df)
+```
+
+```{r}
+# Professor Trash Wheel
+library(readxl)
+library(dplyr)
+library(skimr)
+library(tidyr)
+
+# Read the Excel file and specify column types
+ProfTrashWheel_df = read_excel(
+  path = "~/Desktop/BIST8105/HW/p8105_hw2_rw3033/202409 Trash Wheel Collection Data.xlsx", 
+  sheet = "Professor Trash Wheel", 
+  na = c("NA", ".", ""))|>
+  # Use reasonable variable names
+  janitor::clean_names() |>
+  # Omit rows that do not include dumpster-specific data
+  drop_na(dumpster)|>
+  # Add source
+  mutate(source = "Professor Trash Wheel")
+
+str(ProfTrashWheel_df)
+```
+
+```{r}
+# Gwynnda Trash Wheel
+library(readxl)
+library(dplyr)
+library(skimr)
+library(tidyr)
+
+# Read the Excel file and specify column types
+GwynndaTrashWheel_df = read_excel(
+  path = "~/Desktop/BIST8105/HW/p8105_hw2_rw3033/202409 Trash Wheel Collection Data.xlsx", 
+  sheet = "Gwynnda Trash Wheel", 
+  na = c("NA", ".", ""))|>
+  # Use reasonable variable names
+  janitor::clean_names() |>
+  # Omit rows that do not include dumpster-specific data
+  drop_na(dumpster)|>
+  mutate(source = "Gwynnda Trash Wheel")
+
+str(GwynndaTrashWheel_df)
+```
+
+```{r}
+# Combine sheets
+TidyTrashWheel_df = 
+  bind_rows(MrTrashWheel_df, ProfTrashWheel_df, GwynndaTrashWheel_df)
+print(TidyTrashWheel_df)
+
+str(TidyTrashWheel_df)
+```
+Paragraph about these data:
+The dataset (TidyTrashWheel_df) provides a comprehensive summary of waste collection metrics from the "Mr. Trash Wheel" initiative. It consists of 15 variables and 1,033 observations, detailing the amounts of various types of waste collected across different dates. The columns include information on waste collection metrics such as weight_tons, volume_cubic_yards, and various categories of trash items, including plastic_bottles, polystyrene, cigarette_butts, glass_bottles, plastic_bags, wrappers, and sports_balls. The data also captures year as numerical data, month as character data, and the exact date of collection, formatted as POSIXct. Additionally, the source column, stored as character data, indicates the sheet from which each row of data originates.
+
+```{r}
+# Questions
+library(dplyr)
+
+# What was the total weight of trash collected by Professor Trash Wheel?
+total_weight_professor = TidyTrashWheel_df |>
+  filter(source == "Professor Trash Wheel") |>
+  summarize(total_weight = sum(weight_tons, na.rm = TRUE))  
+  
+# What was the total number of cigarette butts collected by Gwynnda in June of 2022?
+total_cig_butts_gwynnda = TidyTrashWheel_df |>
+  filter(source == "Gwynnda Trash Wheel", year == 2022, month == "June")|>
+  summarize(total_cigarette_butts = sum(cigarette_butts, na.rm = TRUE)) 
+
+# Print the results
+print(total_weight_professor)
+print(total_cig_butts_gwynnda)
+
+```
 
