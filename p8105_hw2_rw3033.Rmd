@@ -236,6 +236,81 @@ Total number of cigarette butts collected by Gwynnda in June of 2022: 18120
 
 # Problem 3
 ```{r}
+library(dplyr)
+library(readr)
+library(tidyr)
+# Data cleaning
+bakers_df = read_csv("~/Desktop/BIST8105/HW/p8105_hw2_rw3033/gbb_datasets/bakers.csv", 
+  na = c("NA", ".", ""))|>
+  # Use reasonable variable names
+  janitor::clean_names()|>
+  separate(baker_name, into = c("baker", "baker_lastname"), sep = " ")
 
+bakes_df = read_csv("~/Desktop/BIST8105/HW/p8105_hw2_rw3033/gbb_datasets/bakes.csv", 
+  na = c("NA", ".", ""))|>
+  # Use reasonable variable names
+  janitor::clean_names()
+
+results_df = read_csv("~/Desktop/BIST8105/HW/p8105_hw2_rw3033/gbb_datasets/results.csv", 
+  skip = 2,
+  na = c("NA", ".", ""))|>
+  # Use reasonable variable names
+  janitor::clean_names()
 ```
+
+```{r}
+# Check for bakers in bakes that are not in bakers
+bakers_not_in_bakes=anti_join(bakes_df, bakers_df, by = c("baker", "series"))
+
+# Check for bakers in results that are not in bakers
+bakers_not_in_results=anti_join(results_df, bakers_df, by = c("baker", "series"))
+
+# Filter out these bakers
+bakers_to_remove = bind_rows(bakers_not_in_bakes, bakers_not_in_results)|>
+  distinct(baker)
+cleaned_bakers_df = bakers_df |>
+  filter(!baker %in% bakers_to_remove$baker)
+```
+
+```{r}
+# Merge the datasets
+bakers_bakes_merged_df = left_join(cleaned_bakers_df, bakes_df, by = c("baker","series"))
+
+combined_df = left_join(bakers_bakes_merged_df, results_df, by = c("baker","series","episode"))|> 
+  distinct()
+
+write_csv(combined_df, "~/Desktop/BIST8105/HW/p8105_hw2_rw3033/gbb_datasets/combined_df.csv")
+```
+Describe your data cleaning process:
+After importing the three datasets, I first checked for missing (NA) values. I ensured that baker names were in a consistent format by using janitor::clean_names() and then separated the full names in bakers.csv into baker and baker_lastname to match the format in bakes.csv and results.csv. Next, I identified bakers present in bakes.csv and results.csv but missing in bakers.csv and filtered out these entries. Finally, I merged the three datasets into combined_df and verified that all rows were distinct to ensure data integrity.
+
+```{r}
+# Create a reader-friendly table showing the star baker or winner of each episode in Seasons 5 through 10. 
+
+# Load necessary libraries
+library(dplyr)
+library(knitr)
+
+# Filter for Seasons 5 through 10 and rows for the Star Baker
+star_winner_df = combined_df |>
+  filter(series >= 5 & series <= 10) |>
+  filter(result %in% c("STAR BAKER", "WINNER")) |>
+  select(series, episode, baker, result)
+
+# Order by series and episode
+star_winner_df = star_winner_df |>
+  arrange(series, episode)
+
+# Create a reader-friendly table
+star_winner_df = star_winner_df |>
+  pivot_wider(
+    names_from = series, 
+    values_from = baker)
+
+print(star_winner_df)
+```
+Comment on the table:
+The table presents the Star Baker and Winner results for Episodes 1 through 10 across Seasons 5 to 8. Each column represents a season, and each row corresponds to an episode, showing which baker received the Star Baker title for that particular episode. The final row displays the overall Winner of each season.
+The table shows some predictable winners, like Nadiya in Season 6 and Candice in Season 7, who were Star Baker multiple times. However, there were surprises too, such as Nancy winning Season 5 despite Richard earning Star Baker five times, and Sophie winning Season 8 over Steven, who had more Star Baker titles. Consistency doesn’t always translate to victory, making the final outcomes less predictable in some seasons.
+
 
