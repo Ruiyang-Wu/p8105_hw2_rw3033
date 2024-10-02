@@ -230,4 +230,12 @@ print(total_weight_professor)
 print(total_cig_butts_gwynnda)
 
 ```
+Total weight of trash collected by Professor Trash Wheel: 246.74 tons
+Total number of cigarette butts collected by Gwynnda in June of 2022: 18120
+
+
+# Problem 3
+```{r}
+
+```
 
