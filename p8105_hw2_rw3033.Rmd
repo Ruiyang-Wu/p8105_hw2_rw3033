@@ -283,6 +283,8 @@ write_csv(combined_df, "~/Desktop/BIST8105/HW/p8105_hw2_rw3033/gbb_datasets/comb
 ```
 Describe your data cleaning process:
 After importing the three datasets, I first checked for missing (NA) values. I ensured that baker names were in a consistent format by using janitor::clean_names() and then separated the full names in bakers.csv into baker and baker_lastname to match the format in bakes.csv and results.csv. Next, I identified bakers present in bakes.csv and results.csv but missing in bakers.csv and filtered out these entries. Finally, I merged the three datasets into combined_df and verified that all rows were distinct to ensure data integrity.
+The final dataset (combined_df) contains all the information, which results in some duplicated entries. However, I decided to keep it this way to ensure it includes the most comprehensive information about the show for future use. If specific details are needed, I can extract the relevant data as required.
+
 
 ```{r}
 # Create a reader-friendly table showing the star baker or winner of each episode in Seasons 5 through 10. 
@@ -313,4 +315,32 @@ Comment on the table:
 The table presents the Star Baker and Winner results for Episodes 1 through 10 across Seasons 5 to 8. Each column represents a season, and each row corresponds to an episode, showing which baker received the Star Baker title for that particular episode. The final row displays the overall Winner of each season.
 The table shows some predictable winners, like Nadiya in Season 6 and Candice in Season 7, who were Star Baker multiple times. However, there were surprises too, such as Nancy winning Season 5 despite Richard earning Star Baker five times, and Sophie winning Season 8 over Steven, who had more Star Baker titles. Consistency doesn’t always translate to victory, making the final outcomes less predictable in some seasons.
 
+```{r}
+# Import, clean, tidy, and organize the viewership data
+library(dplyr)
+library(readr)
+library(tidyr)
 
+viewers_df = read_csv("~/Desktop/BIST8105/HW/p8105_hw2_rw3033/gbb_datasets/viewers.csv", 
+  na = c("NA", ".", ""))|>
+  # Use reasonable variable names
+  janitor::clean_names() |>
+  mutate(across(starts_with("series"), ~ round(.x, 2)))
+
+# Show the first 10 rows of this dataset. 
+print(head(viewers_df, 10))
+```
+
+```{r}
+# What was the average viewership in Season 1?
+average_viewership_season_1 = mean(viewers_df$series_1, na.rm = TRUE)
+
+# What was the average viewership in Season 5?
+average_viewership_season_5 = mean(viewers_df$series_5, na.rm = TRUE)
+
+# Print the results
+print(average_viewership_season_1)
+print(average_viewership_season_5)
+```
+The average viewership in Season 1: 2.77
+The average viewership in Season 1: 10.039
