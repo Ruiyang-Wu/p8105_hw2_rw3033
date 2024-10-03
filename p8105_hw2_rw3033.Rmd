@@ -230,8 +230,8 @@ print(total_weight_professor)
 print(total_cig_butts_gwynnda)
 
 ```
-Total weight of trash collected by Professor Trash Wheel: 246.74 tons
-Total number of cigarette butts collected by Gwynnda in June of 2022: 18120
+Total weight of trash collected by Professor Trash Wheel:  `r total_weight_professor` tons
+Total number of cigarette butts collected by Gwynnda in June of 2022: `r total_cig_butts_gwynnda`
 
 
 # Problem 3
@@ -260,29 +260,32 @@ results_df = read_csv("~/Desktop/BIST8105/HW/p8105_hw2_rw3033/gbb_datasets/resul
 
 ```{r}
 # Check for bakers in bakes that are not in bakers
-bakers_not_in_bakes=anti_join(bakes_df, bakers_df, by = c("baker", "series"))
+bakers_not_in_bakes_1=anti_join(bakes_df, bakers_df, by = c("baker", "series"))
+bakers_not_in_bakes_2=anti_join(bakers_df, bakes_df, by = c("baker", "series"))
 
 # Check for bakers in results that are not in bakers
-bakers_not_in_results=anti_join(results_df, bakers_df, by = c("baker", "series"))
+bakers_not_in_results_1=anti_join(bakers_df,results_df, by = c("baker", "series"))
+bakers_not_in_results_2=anti_join(results_df,bakers_df, by = c("baker", "series"))
+```
 
-# Filter out these bakers
-bakers_to_remove = bind_rows(bakers_not_in_bakes, bakers_not_in_results)|>
-  distinct(baker)
-cleaned_bakers_df = bakers_df |>
-  filter(!baker %in% bakers_to_remove$baker)
+```{r}
+# Rename individual baker in bakes_df
+bakes_df = bakes_df |>
+  mutate(baker = ifelse(baker == '"Jo"', 'Jo', baker))
 ```
 
 ```{r}
 # Merge the datasets
-bakers_bakes_merged_df = left_join(cleaned_bakers_df, bakes_df, by = c("baker","series"))
+merged_df = left_join(results_df, bakes_df, by = c("baker","series", "episode"))
 
-combined_df = left_join(bakers_bakes_merged_df, results_df, by = c("baker","series","episode"))|> 
-  distinct()
+combined_df = left_join(merged_df, bakers_df, by = c("baker","series"))
 
 write_csv(combined_df, "~/Desktop/BIST8105/HW/p8105_hw2_rw3033/gbb_datasets/combined_df.csv")
 ```
 Describe your data cleaning process:
-After importing the three datasets, I first checked for missing (NA) values. I ensured that baker names were in a consistent format by using janitor::clean_names() and then separated the full names in bakers.csv into baker and baker_lastname to match the format in bakes.csv and results.csv. Next, I identified bakers present in bakes.csv and results.csv but missing in bakers.csv and filtered out these entries. Finally, I merged the three datasets into combined_df and verified that all rows were distinct to ensure data integrity.
+
+After importing the three datasets, I first checked for missing (NA) values. I ensured that the baker names were in a consistent format using janitor::clean_names() and then separated the full names in bakers.csv into baker and baker_lastname to match the format in bakes.csv and results.csv. Next, I identified bakers present in bakes.csv and results.csv but missing in bakers.csv. I found that there was one baker name with extra quotation marks in bakes.csv, which caused bakers.csv not to match bakes.csv. I corrected this input mistake. Finally, I merged the three datasets into combined_df and verified that all rows were distinct to ensure data integrity.
+
 The final dataset (combined_df) contains all the information, which results in some duplicated entries. However, I decided to keep it this way to ensure it includes the most comprehensive information about the show for future use. If specific details are needed, I can extract the relevant data as required.
 
 
@@ -312,8 +315,8 @@ star_winner_df = star_winner_df |>
 print(star_winner_df)
 ```
 Comment on the table:
-The table presents the Star Baker and Winner results for Episodes 1 through 10 across Seasons 5 to 8. Each column represents a season, and each row corresponds to an episode, showing which baker received the Star Baker title for that particular episode. The final row displays the overall Winner of each season.
-The table shows some predictable winners, like Nadiya in Season 6 and Candice in Season 7, who were Star Baker multiple times. However, there were surprises too, such as Nancy winning Season 5 despite Richard earning Star Baker five times, and Sophie winning Season 8 over Steven, who had more Star Baker titles. Consistency doesn’t always translate to victory, making the final outcomes less predictable in some seasons.
+The table presents the Star Baker and Winner results for Episodes 1 through 10 across Seasons 5 to 10. Each column represents a season, and each row corresponds to an episode, showing which baker received the Star Baker title for that particular episode. The final row displays the overall Winner of each season.
+Predictable winners include Nadiya (Season 6) and Candice (Season 7), who had multiple Star Baker titles. However, there were surprises too: in Season 5, Richard was a strong contender with five Star Baker titles, but Nancy won in the end. Similarly, Steph dominated Season 10 but lost to David, making the final results less predictable in some cases.
 
 ```{r}
 # Import, clean, tidy, and organize the viewership data
